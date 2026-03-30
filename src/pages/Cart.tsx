@@ -97,7 +97,10 @@ const Cart = () => {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={clearCart}>Clear Cart</Button>
-            <Button size="lg">Checkout</Button>
+            <Button size="lg" onClick={handleCheckout} disabled={checkingOut}>
+              {checkingOut ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Checkout
+            </Button>
           </div>
         </div>
       </div>
