@@ -9,6 +9,22 @@ import { toast } from "sonner";
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
+  const [checkingOut, setCheckingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      await api.orders.create();
+      clearCart();
+      toast.success("Order placed successfully!");
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err.message || "Checkout failed");
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
