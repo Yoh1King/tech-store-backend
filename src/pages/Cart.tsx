@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
