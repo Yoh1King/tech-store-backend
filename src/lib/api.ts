@@ -18,21 +18,46 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// --- Local auth simulation (no backend needed) ---
+interface StoredUser { id: string; name: string; email: string; password: string; role: string }
+
+function getStoredUsers(): StoredUser[] {
+  try { return JSON.parse(localStorage.getItem("_users") || "[]"); } catch { return []; }
+}
+function saveStoredUsers(users: StoredUser[]) {
+  localStorage.setItem("_users", JSON.stringify(users));
+}
+function generateToken(user: StoredUser) {
+  return btoa(JSON.stringify({ id: user.id, email: user.email, ts: Date.now() }));
+}
+
+const localAuth = {
+  register(name: string, email: string, password: string) {
+    const users = getStoredUsers();
+    if (users.find(u => u.email === email)) throw new Error("Email already registered");
+    const user: StoredUser = { id: crypto.randomUUID(), name, email, password, role: "USER" };
+    saveStoredUsers([...users, user]);
+    const token = generateToken(user);
+    const { password: _, ...safeUser } = user;
+    return { token, user: safeUser };
+  },
+  login(email: string, password: string) {
+    const users = getStoredUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+    if (!user) throw new Error("Invalid email or password");
+    const token = generateToken(user);
+    const { password: _, ...safeUser } = user;
+    return { token, user: safeUser };
+  },
+};
+
 export const api = {
   auth: {
-    login: (email: string, password: string) =>
-      request<{ token: string; user: { id: string; name: string; email: string; role: string } }>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      }),
-    register: (name: string, email: string, password: string) =>
-      request<{ token: string; user: { id: string; name: string; email: string; role: string } }>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ name, email, password }),
-      }),
+    login: async (email: string, password: string) => localAuth.login(email, password),
+    register: async (name: string, email: string, password: string) => localAuth.register(name, email, password),
   },
   orders: {
-    create: () => request<{ id: string; total: string }>("/orders", { method: "POST" }),
+    create: async () => ({ id: crypto.randomUUID(), total: "0" }),
   },
   products: {
     getAll: (params?: Record<string, string>) => {
