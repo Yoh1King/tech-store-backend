@@ -1,11 +1,30 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
+  const [checkingOut, setCheckingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      await api.orders.create();
+      clearCart();
+      toast.success("Order placed successfully!");
+      navigate("/");
+    } catch (err: any) {
+      toast.error(err.message || "Checkout failed");
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -78,7 +97,10 @@ const Cart = () => {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={clearCart}>Clear Cart</Button>
-            <Button size="lg">Checkout</Button>
+            <Button size="lg" onClick={handleCheckout} disabled={checkingOut}>
+              {checkingOut ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Checkout
+            </Button>
           </div>
         </div>
       </div>

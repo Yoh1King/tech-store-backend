@@ -19,6 +19,21 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  auth: {
+    login: (email: string, password: string) =>
+      request<{ token: string; user: { id: string; name: string; email: string; role: string } }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      }),
+    register: (name: string, email: string, password: string) =>
+      request<{ token: string; user: { id: string; name: string; email: string; role: string } }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ name, email, password }),
+      }),
+  },
+  orders: {
+    create: () => request<{ id: string; total: string }>("/orders", { method: "POST" }),
+  },
   products: {
     getAll: (params?: Record<string, string>) => {
       const qs = params ? "?" + new URLSearchParams(params).toString() : "";
